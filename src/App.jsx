@@ -13,7 +13,7 @@ function App() {
     try {
       // Make the request to the Vercel serverless function
       const response = await axios.post(
-        'https://storybuilderbckend.vercel.app/', // Your Vercel function URL
+        'https://storybuilderai-backend.vercel.app/api/storytext/', // Your Vercel function URL
         { prompt: prompt } // Send the prompt to generate text
       );
 
