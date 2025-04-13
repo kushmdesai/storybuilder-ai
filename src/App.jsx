@@ -1,66 +1,87 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
 import React, { useState } from 'react';
 import axios from 'axios';
 
-function App() {
-  const [prompt, setPrompt] = useState(''); // To store the user input (prompt)
-  const [audioUrl, setAudioUrl] = useState(''); // To store the audio URL
-  const [story, setStory] = useState(''); // To show a story or error message
+const App = () => {
+  const [prompt, setPrompt] = useState('');
+  const [response, setResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Function to handle generating text and audio
-  const generateAudioAndText = async () => {
-    setStory("📝 Generating story...");
+  // Function to handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setResponse(null);
 
     try {
-      // Make the request to the Vercel serverless function
-      const response = await axios.post(
-        'https://storybuilderai-backend.vercel.app/api/storytext/', // Your Vercel function URL
-        { prompt: prompt } // Send the prompt to generate text
-      );
-
-      // If the audio URL is returned
-      if (response.data.audio_url) {
-        setAudioUrl(response.data.audio_url); // Set the audio URL for playback
-        setStory("🎶 Story generated and audio created!"); // Show success message
-      } else {
-        setStory("❌ Failed to generate audio.");
+      const headers = {
+        'Content-Type': 'application/json'
       }
-    } catch (error) {
-      console.error("Error generating text or audio:", error);
-      setStory("🚨 Error generating text or audio: " + error.message);
+      let data = JSON.stringify({
+        "input_text": "write a short story about prom in school"
+      });
+      const res = await axios.post('https://hackathon-practice2025.onrender.com/api/generate/', data, { headers: headers });
+      setResponse(res.data.response);
+    } catch (err) {
+      setError('An error occurred while fetching data.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="App">
-      <h1>AI Story Generator with Audio</h1>
+    <div>
+       <div>
 
-      {/* Text input for the user to provide a prompt */}
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter your story prompt..."
-        rows="4"
-        cols="50"
-      />
+<Card style={{ width: '100%' }}>
+  <Card.Body>
+    <Card.Title>Your Story</Card.Title>
+    <Card.Text>
+     <h1>Hackathon Project - AI Prompt</h1>
 
-      {/* Button to trigger the generation of text and audio */}
-      <button onClick={generateAudioAndText}>Generate Story</button>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Enter your prompt:
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Type your prompt here"
+            required
+          />
+        </label>
+        <button type="submit" disabled={loading}>Submit</button>
+      </form>
+    </Card.Text>
+   
+  </Card.Body>
+</Card>
+</div>
+      
 
-      {/* Display the generated story (optional) */}
-      {story && <p>{story}</p>}
+      {loading && <div>Loading...</div>}
+      {error && <div>{error}</div>}
 
-      {/* Display the audio player if an audio URL is available */}
-      {audioUrl && (
+      {response && (
         <div>
-          <h2>Listen to the Story:</h2>
-          <audio controls>
-            <source src={audioUrl} type="audio/mpeg" />
-            Your browser does not support the audio element.
-          </audio>
+
+          <Card style={{ width: '100%' }}>
+            <Card.Body>
+              <Card.Title>Your Story</Card.Title>
+              <Card.Text>
+                {response}
+              </Card.Text>
+             
+            </Card.Body>
+          </Card>
         </div>
       )}
     </div>
   );
-}
+};
 
 export default App;
